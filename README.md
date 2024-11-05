@@ -1,84 +1,76 @@
-# EPS Extraction from SEC EDGAR Filings
+# EPS Extraction Project - README
 
 ## Overview
-This project involves parsing and extracting Earnings Per Share (EPS) data from a set of SEC EDGAR filings in HTML format, specifically focusing on quarterly EPS data for companies. This task simulates a real-world scenario where the extracted financial data is required to be structured for further analysis or reporting.
 
-The primary goal of this project is to develop a robust parser that can navigate the complexities of SEC filings, handle varied formats, and output EPS data reliably. This parser should not only work for the provided sample files but also generalize well to unseen filing formats.
+This project is designed to extract **Earnings Per Share (EPS)** data from a set of financial HTML files using **web scraping** and **regular expressions (regex)**. The goal is to develop a reliable method for identifying EPS data in financial reports.
 
-## Project Description
-Given a set of EDGAR filings (such as 8-K reports), the objective is to:
-1. Parse each HTML file to locate and extract the quarterly EPS figure.
-2. Prioritize specific types of EPS data, following defined rules:
-   - **Basic EPS** is preferred over diluted EPS if both are present.
-   - **GAAP EPS** is preferred over non-GAAP EPS if both are present.
-   - **Net/total EPS** should be output if multiple EPS values are available.
-3. Output a negative EPS value if it is represented in brackets (e.g., `(4.5)` should be output as `-4.5`).
-4. Where EPS data is not available but "loss per share" information is present, output the loss per share as a negative EPS value.
+## Methodology
 
-The output is saved in a CSV format with two columns: `filename` (name of the filing) and `EPS` (extracted EPS value).
+### 1. Initial Approach
 
-## File Structure
-- `filings/`: Folder containing the HTML files for each EDGAR filing.
-- `output/`: Directory where the generated CSV output will be saved.
-- `parser.py`: Python script implementing the EPS extraction logic.
-- `requirements.txt`: List of required libraries for running the script.
+At the beginning of the project, I explored different approaches:
+- I initially consulted **ChatGPT**, which recommended using **regex** as a possible solution.
+- I researched various **Natural Language Processing (NLP)** tools such as **Named Entity Recognition (NER)** with **SpaCy** and **Hugging Face**, but they were not suitable for this task.
+- I also looked into scraping financial data from **Yahoo Finance**, but it was not directly relevant to my project.
 
-## Installation and Setup
-1. **Clone the repository**:
-   ```bash
-   git clone <repository-url>
-   cd eps-extraction-project
-   ```
+### 2. Web Scraping Approach
 
-2. **Install required packages**:
-   It is recommended to use a virtual environment:
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate
-   pip install -r requirements.txt
-   ```
+I chose to use **BeautifulSoup** for scraping the HTML data and **regex** for identifying and extracting the EPS information. My steps were as follows:
+- **HTML Parsing**: I converted each HTML file into a BeautifulSoup object.
+- **Table Extraction**: I focused on extracting financial data from the tables in the HTML files.
+- **Regex Application**: I applied regex to identify and extract the EPS values.
 
-## Usage
-To execute the parser and generate the output CSV file, run the following command:
+The extracted values were then converted from strings to floats and saved into a CSV file for further analysis.
 
-```bash
-python parser.py --input_folder filings/ --output_file output/eps_data.csv
-```
+### 3. Development Process
 
-### Output Format
-The parser will generate a CSV file (`eps_data.csv`) with the following format:
-```csv
-filename,EPS
-0001564590-20-019726.html,0.08
-0000066570-20-000013.html,1.12
-0000008947-20-000044.html,-0.41
-0001564590-20-019431.html,1.08
-0001564590-20-019396.html,-3.15
-```
+#### Step 1: Build Initial Regex Patterns
+I started by building regex patterns based on a sample output file (`output_example.csv`). These initial patterns were expanded to cover the remaining 50 HTML files.
 
-## Key Extraction Rules
-1. **EPS Type Priority**:
-   - Basic EPS is preferred over diluted EPS.
-   - GAAP EPS is prioritized over non-GAAP EPS.
-   - When multiple EPS values are present, output the net or total EPS value.
-   
-2. **Negative EPS**:
-   - EPS values enclosed in brackets should be interpreted as negative (e.g., `(4.5)` is `-4.5`).
+#### Step 2: Data Extraction Using Regex
+- I added more regex patterns to handle variations in how EPS was represented in the data.
+- The **order of regex patterns** was important for ensuring accurate matches.
+- The extracted EPS values were stored in CSV files.
 
-3. **Loss Per Share**:
-   - If EPS is absent, but "loss per share" data is available, output it as a negative EPS value.
+### Results
 
-## Project Submission
-To submit the project, include the following:
-- The `parser.py` script.
-- The output CSV file containing EPS data for all 50 provided filings.
-- A brief description of your approach and any assumptions made during development.
+I generated two main output files:
+1. **output_eps_data.csv**: This version contains more regex patterns and has fewer errors.
+2. **output_eps_data_v3.csv**: This version contains fewer regex patterns (reduced from 31 to 5), but it has more errors as the simplified regex approach did not capture all variations.
 
-## Assessment Criteria
-The parser will be evaluated based on:
-1. **Accuracy**: Correctly extracting and prioritizing EPS data per the outlined rules.
-2. **Adaptability**: Handling variations in filing formats and generalizing to unseen formats.
-3. **Efficiency**: Processing multiple files in a performant manner.
+### Challenges and Limitations
 
-## License
-This project is proprietary to Trexquant Investment LP. Redistribution of this project or its contents is strictly prohibited without prior written consent from Trexquant.
+- **Multiple Regex Patterns**: I relied on a large number of regex patterns, which I reduced in version 3, but this introduced more errors.
+- **Unsuccessful EPS Extraction**: I was unable to extract EPS values from the following files:
+   - `0000046080-20-000050.html`
+   - `0001104659-20-053563.html`
+- **Exploring Alternative Methods**: I may explore other approaches to better understand HTML structures and possibly train a model using **Hugging Face** for more accurate extraction.
+
+### Future Work
+
+- **Optimize Regex Patterns**: I plan to further reduce the number of regex patterns while maintaining accuracy.
+- **Explore ML Solutions**: I may experiment with training a model to extract EPS values more effectively.
+- **Improve Accuracy in Version 3**: Although version 3 reduced the number of regex patterns, I need more time to address the errors it introduced.
+
+---
+
+## Project Structure
+
+### Code Structure:
+1. **Library Imports**: Import necessary libraries such as `BeautifulSoup`, `re`, and `pandas`.
+2. **Function Definitions**: Functions are defined for HTML parsing, table extraction, and EPS extraction using regex.
+3. **Testing Code on Sample Articles (5 Articles)**: Code is first tested on a small sample to ensure the extraction process works correctly.
+4. **Processing All 50 Articles**: The code is then extended to handle the full set of 50 HTML files.
+5. **Generalizing Regex Patterns**: In version 3, the regex patterns were generalized to reduce the total number of patterns.
+
+---
+
+## Files
+
+- **output_eps_data.csv**: Contains more regex patterns and fewer errors.
+- **output_eps_data_v3.csv**: Contains fewer regex patterns but more extraction errors.
+
+
+## Conclusion
+
+This project demonstrates how **web scraping** and **regular expressions** can be used to extract financial data from HTML reports. While regex-based extraction works well in many cases, there are limitations, particularly when dealing with diverse HTML structures. Future efforts will focus on refining the regex patterns and exploring alternative methods for more robust extraction.
